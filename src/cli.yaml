@@ -1,0 +1,27 @@
+common-path-args: &common-path-args
+    - credentials-path:
+        long: credentials-path
+        help: Path to AWS Credentials file (default to ~/.aws/credentials)
+        takes_value: true
+        default_value: "~/.aws/credentials"
+        value_name: CREDENTIALS_FILE_PATH
+    - config-path:
+        long: config-path
+        help: Path to AWS Config file (default to ~/.aws/config)
+        takes_value: true
+        default_value: "~/.aws/config"
+        value_name: CONFIG_FILE_PATH
+
+name: raws
+version: "0.1.0"
+author: David Nguyen
+about: simple tool to help switching among AWS profiles more easily
+subcommands:
+    - get:
+        about: get current AWS profile (that is set to default profile)
+        args:
+            *common-path-args
+    - set:
+        about: set default profile with credentials of selected profile (this command assumes fzf is already setup)
+        args:
+            *common-path-args
