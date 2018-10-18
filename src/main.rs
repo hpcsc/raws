@@ -10,16 +10,14 @@ fn main() {
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from_yaml(yaml).get_matches();
 
-    let config = Config::new(&matches);
+    let config = Config::new(&matches).unwrap();
 
     let result = match config {
         Config::Get(config) => handlers::get_current_profile(config),
         Config::Set(config) => handlers::set_profile(config),
-        _ => Ok(()),
     };
 
-    match result {
-        Err(message) => println!("{}", message),
-        _ => (),
-    }
+    result.unwrap_or_else(|error_message| {
+        println!("{}", error_message);
+    })
 }

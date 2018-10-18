@@ -3,7 +3,6 @@ use clap::ArgMatches;
 pub enum Config {
     Get(GetConfig),
     Set(SetConfig),
-    Invalid,
 }
 
 pub struct GetConfig {
@@ -18,18 +17,18 @@ pub struct SetConfig {
 }
 
 impl Config {
-    pub fn new(matches: &ArgMatches) -> Config {
+    pub fn new(matches: &ArgMatches) -> Option<Config> {
         match matches.subcommand() {
-            ("get", Some(m)) => Config::Get(GetConfig {
+            ("get", Some(m)) => Some(Config::Get(GetConfig {
                                     credentials_path: get_credentials_path(m),
                                     config_path: get_config_path(m)
-                                }),
-            ("set", Some(m)) => Config::Set(SetConfig {
+                                })),
+            ("set", Some(m)) => Some(Config::Set(SetConfig {
                                     credentials_path: get_credentials_path(m),
                                     config_path: get_config_path(m),
                                     pattern: get_arg(m, "PROFILE_PATTERN", ""),
-                                }),
-            _ => Config::Invalid
+                                })),
+            _ => None
         }
     }
 }
