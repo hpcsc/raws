@@ -6,9 +6,13 @@ use clap::{ App };
 use raws::config::{ Config };
 use raws::handlers;
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 fn main() {
     let yaml = load_yaml!("cli.yaml");
-    let matches = App::from_yaml(yaml).get_matches();
+    let matches = App::from_yaml(yaml)
+                    .version(VERSION)
+                    .get_matches();
 
     let config = Config::new(&matches).unwrap();
 

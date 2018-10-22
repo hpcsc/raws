@@ -12,7 +12,6 @@ config-path-arg: &config-path-arg
     value_name: CONFIG_FILE_PATH
 
 name: raws
-version: "0.1.0"
 author: David Nguyen
 about: simple tool to help switching among AWS profiles more easily
 subcommands:
