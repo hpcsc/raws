@@ -1,29 +1,25 @@
 language: rust
-
 os:
 - linux
 - osx
-
 rust:
 - stable
-
 cache: cargo
-
 script:
-  - ./scripts/append-build-no.sh ${TRAVIS_BUILD_NUMBER}
-  - cargo build --release --verbose --all
-  - cargo test --verbose --all
-
+- "./scripts/append-build-no.sh ${TRAVIS_BUILD_NUMBER}"
+- cargo build --release --verbose --all
+- cargo test --verbose --all
 after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then mkdir build; mv target/release/raws build/raws-${TRAVIS_OS_NAME}-${TRAVIS_BUILD_NUMBER} ; fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then mkdir build; mv target/release/raws
+  build/raws-${TRAVIS_OS_NAME}-${TRAVIS_BUILD_NUMBER} ; fi
 deploy:
-  - provider: gcs
-    access_key_id: "GOOGXSXJIII432RYYGT7DNP5"
-    secret_access_key:
-      secure: "IqPBYctNlPMAKAn8VjLaq/HzZRNVP8kQ/6+6trvsqA1nO3B525QcKK+1efHOGIKt5K9u9wrvwAM2AC4wto438RoyeWiZxKlZtzHGJRKuxjdN/Q072kU1ndsdOhflLZQuWk5uVWk6EIJnh8vlMqe7e2asK7HEuyY6TC+rbfPjVFix7iKFY9yFD7aOORrG1HpyFHFIXf4mUWudfHqCq4RDrIFRQJd9MeLiVA6GUE0eC0m941lnHdSmQbcda5KYU7lHJta1op/CnRVhswb57ESs0KLVtS+uII3wp/TwYafw1ZGwzb4ekrX+p/glcGdFLXkyXXg8hKkOe2IM3zDWvrEhL10m3VILmLKUd8Wv4JdzWXb1Tgm+yNkhFkqtq+vTRWKP1pXaXW8cZYOpbzJjzsRnnfVeeSlpSzgmAtlSZI7qqcqMV/4BQN62ZEGldHFKZS3Yhcjd+am1CymlKEbvXq07yqOlzP5RC+B3lPCWgJPfKG4Rf3DvrpK4yc1qjCA0Uv24kZDSiLTE84hsNkLfjimOqyZR+6kBtXrXIhBeMWjdTKfVQ8iq12HhA9vORkYsN4XXqQ3y7SHQpP60tcaxAGFQgnFuUiZISRezr8oma7DReN2gNAE6WmuEgTHr7NpKmPd90Fp61Wkw+UKSHE62hTfngRnKICvdcm3sYwP09mjxE/E="
-    bucket: "raws-master"
-    skip_cleanup: true
-    acl: public-read
-    local-dir: build
-    on:
-      branch: master
+  provider: gcs
+  access_key_id: GOOGLA7XHWA7JQJSRMWN3BEZ
+  secret_access_key:
+    secure: Y0XDGHWWQxsAdPJ/yz1sGqNKxz530bJZgzNXfNXAt/CvEheqFgUyPpLNJXEZ9sq3G/Xz10qI/c6QhV7LLCHcyPsdz7h+X9XDg2uUESt2sClQJsMpIz05t6N2yQUUo2H7duv2Ixk28CL7LfOtyIt0/lSVC9014sOgnGViZxB1dFLliojegmj2E+QyvFhXBFjWK1OwFcEgGbn+OIUw1DTUawgHPc5HVUZlqcPyTlGtLJqVP5ah29C4JUriLgphb+l+mZ3KUp9W4Vj2cQ12qgDd+FpikDz/IKEi6MHtWi0IE0r2rsKMlnnDYJ415AQLWSHg6rfnJvGfrb/dE8sQvURucCt362U86fHZ+8ZaAyY+8zCYpc6BQkB1oTw9np39sYVYYtioXjdXSFgF9j640Y3y+LyQoPAm4fcTxJ8i0HeYHe2f1VnBPBCeCEYrzJZT3iNtyFTjSVGGvhv0qOTXK6Ygm14lgccfnkWNPK7XizlRIr5FmwJbFX2KEaSdm8dVAYOM+CUOQWtzQYOammxPpcIuNvkVHxtIzeoaYbLlkzzjz+b9750VaOnpMlmJlN/lpn5Ncw8FxwzONF8Yr2mb7XxYMAj6hek43GmuOylri8/hAiHNBzs6/2Exy219qFgy1hBkM+HAcySQ3iEXgI2Uvtf1op4LWPkHAa+W5qkN0pHMXxM=
+  skip_cleanup: true
+  bucket: raws-master
+  local-dir: build
+  acl: public-read
+  on:
+    branch: master
