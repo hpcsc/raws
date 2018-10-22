@@ -1,8 +1,7 @@
+use handlers::common::load_ini;
 use ini::ini::Properties;
-use shellexpand::tilde;
-use ini::ini::Error::{ Io, Parse };
 use ini::Ini;
-use super::config::{ GetConfig, SetConfig };
+use config::{ GetConfig };
 
 fn section_is_not_default(section: &Option<String>) -> bool {
     match section {
@@ -37,7 +36,7 @@ fn find_default_section<'a>(credentials_file: &'a Ini) -> Option<(&'a Option<Str
         })
 }
 
-pub fn get_current_profile(config: GetConfig) -> Result<(), String> {
+pub fn handle(config: GetConfig) -> Result<(), String> {
     let credentials_file = load_ini(&config.credentials_path)?;
     let config_file = load_ini(&config.config_path)?;
 
@@ -52,19 +51,4 @@ pub fn get_current_profile(config: GetConfig) -> Result<(), String> {
                                                     .get("aws_access_key_id")
                                                     .unwrap());
     Ok(())
-}
-
-pub fn set_profile(config: SetConfig) -> Result<(), String> {
-    println!("set called {} {} {}", config.credentials_path, config.config_path, config.pattern);
-    Ok(())
-}
-
-fn load_ini(path: &String) -> Result<Ini, String> {
-    let expanded_path = tilde(path).to_string();
-
-    match Ini::load_from_file(expanded_path) {
-        Ok(f) => Ok(f),
-        Err(Io(_)) => Err(format!("failed to load file {}", path)),
-        Err(Parse(_)) => Err(format!("invalid file {}", path)),
-    }
 }
