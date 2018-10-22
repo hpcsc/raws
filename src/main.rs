@@ -18,6 +18,6 @@ fn main() {
     };
 
     result.unwrap_or_else(|error_message| {
-        println!("{}", error_message);
+        println!("== Error: {}", error_message);
     })
 }

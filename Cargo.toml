@@ -5,3 +5,5 @@ authors = ["David Nguyen <hpcsc@users.noreply.github.com>"]
 
 [dependencies]
 clap = {version = "2.32", features = ["yaml"]}
+rust-ini = "0.13"
+shellexpand = "1.0"
