@@ -15,7 +15,7 @@ script:
   - cargo test --verbose --all
 
 after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then mv target/release/raws target/release/raws-${TRAVIS_OS_NAME}-${TRAVIS_BUILD_NUMBER} ; fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then mkdir build; mv target/release/raws build/raws-${TRAVIS_OS_NAME}-${TRAVIS_BUILD_NUMBER} ; fi
 deploy:
   - provider: gcs
     access_key_id: "GOOGXSXJIII432RYYGT7DNP5"
@@ -24,6 +24,6 @@ deploy:
     bucket: "raws-master"
     skip_cleanup: true
     acl: public-read
-    local-dir: bin
+    local-dir: build
     on:
       branch: master
