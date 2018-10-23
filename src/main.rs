@@ -8,6 +8,10 @@ use raws::handlers::{ get, set };
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
+fn display_result(message: String) -> () {
+    println!("{}", message)
+}
+
 fn main() {
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from_yaml(yaml)
@@ -17,7 +21,7 @@ fn main() {
     let config = Config::new(&matches).unwrap();
 
     let result = match config {
-        Config::Get(config) => get::handle(config),
+        Config::Get(config) => get::handle(config, display_result),
         Config::Set(config) => set::handle(config),
     };
 

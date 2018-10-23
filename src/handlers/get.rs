@@ -70,18 +70,35 @@ fn find_default_section<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Prope
         })
 }
 
-pub fn handle(config: GetConfig) -> Result<(), String> {
-    let credentials_file = load_ini(&config.credentials_path)?;
-    let config_file = load_ini(&config.config_path)?;
-
-    let section_with_same_assume_settings = find_default_section(&config_file)
+fn find_current_assume_profile<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Properties)> {
+    find_default_section(&file)
         .and_then(compose(get_value_of_tuple, get_assume_settings))
-        .and_then(find_section_with_same_assume_settings(&config_file));
-    println!("{:?}", section_with_same_assume_settings);
+        .and_then(find_section_with_same_assume_settings(&file))
+}
 
-    let section_with_same_access_key = find_default_section(&credentials_file)
-                                    .and_then(compose(get_value_of_tuple, get_access_key_id))
-                                    .and_then(find_section_with_same_access_key(&credentials_file));
-    println!("{:?}", section_with_same_access_key);
-    Ok(())
+fn find_current_profile<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Properties)> {
+    find_default_section(&file)
+        .and_then(compose(get_value_of_tuple, get_access_key_id))
+        .and_then(find_section_with_same_access_key(&file))
+}
+
+fn get_section_name((section_name, _): (&Option<String>, &Properties)) -> Option<String> {
+    match section_name {
+        Some(name) => Some(name.to_owned()),
+        None => None
+    }
+}
+
+pub fn handle(config: GetConfig, output: impl Fn(String) -> ()) -> Result<(), String> {
+    let config_file = load_ini(&config.config_path)?;
+    let credentials_file = load_ini(&config.credentials_path)?;
+
+    let section_name = find_current_assume_profile(&config_file)
+        .or_else(|| find_current_profile(&credentials_file))
+        .and_then(get_section_name);
+
+    match section_name {
+        Some(name) => Ok(output(name)),
+        None => Err(String::from("no default profile set"))
+    }
 }
