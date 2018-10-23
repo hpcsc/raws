@@ -17,11 +17,13 @@ fn section_has_same_access_key_id(default_access_key_id: &String, properties: &P
     }
 }
 
-fn find_section_with_same_access_key<'a>(default_access_key_id: &String, credentials_file: &'a Ini) -> Option<(&'a Option<String>, &'a Properties)> {
-    credentials_file.iter().find(|(section, properties)| {
-        section_is_not_default(section) &&
-        section_has_same_access_key_id(default_access_key_id, properties)
-    })
+fn find_section_with_same_access_key<'a>(credentials_file: &'a Ini) -> impl Fn(&String) -> Option<(&'a Option<String>, &'a Properties)> {
+    move |default_access_key_id: &String| {
+            credentials_file.iter().find(|(section, properties)| {
+            section_is_not_default(section) &&
+            section_has_same_access_key_id(default_access_key_id, properties)
+        })
+    }
 }
 
 fn get_default_access_key_id<'a>((_, props): (&Option<String>, &'a Properties)) -> Option<&'a String> {
@@ -40,15 +42,9 @@ pub fn handle(config: GetConfig) -> Result<(), String> {
     let credentials_file = load_ini(&config.credentials_path)?;
     let config_file = load_ini(&config.config_path)?;
 
-    let default_access_key_id = find_default_section(&credentials_file)
-                                    .and_then(get_default_access_key_id);
-    let section_with_same_access_key = find_section_with_same_access_key(default_access_key_id.unwrap(), &credentials_file);
+    let section_with_same_access_key = find_default_section(&credentials_file)
+                                    .and_then(get_default_access_key_id)
+                                    .and_then(find_section_with_same_access_key(&credentials_file));
     println!("{:?}", section_with_same_access_key);
-    println!("get called {} {} {}", config.credentials_path,
-                                    config.config_path,
-                                    credentials_file.section(Some("default"))
-                                                    .unwrap()
-                                                    .get("aws_access_key_id")
-                                                    .unwrap());
     Ok(())
 }
