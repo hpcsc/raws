@@ -26,10 +26,8 @@ fn find_section_with_same_access_key<'a>(credentials_file: &'a Ini) -> impl Fn(&
 fn get_assume_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
     let role_arn = properties.get("role_arn");
     let source_profile = properties.get("source_profile");
-    if let Some(arn) = role_arn {
-        if let Some(profile) = source_profile {
-            return Some((arn, profile))
-        }
+    if let (Some(arn), Some(profile)) = (role_arn, source_profile) {
+        return Some((arn, profile))
     }
 
     None
