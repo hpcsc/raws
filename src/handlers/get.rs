@@ -167,6 +167,42 @@ mod tests {
         }
     }
 
+    mod get_assume_settings {
+        use handlers::get::get_assume_settings;
+        use std::collections::HashMap;
+
+        #[test]
+        fn return_some_if_both_role_arn_and_source_profile_available() {
+            let mut section_properties = HashMap::new();
+            section_properties.insert("role_arn".to_owned(), "role_arn_1".to_owned());
+            section_properties.insert("source_profile".to_owned(), "source_profile_1".to_owned());
+            let result = get_assume_settings(&section_properties);
+
+            assert!(result.is_some());
+            let (arn, profile) = result.unwrap();
+            assert_eq!("role_arn_1", arn);
+            assert_eq!("source_profile_1", profile);
+        }
+
+        #[test]
+        fn return_none_if_role_arn_not_available() {
+            let mut section_properties = HashMap::new();
+            section_properties.insert("source_profile".to_owned(), "source_profile_1".to_owned());
+            let result = get_assume_settings(&section_properties);
+
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn return_none_if_source_profile_not_available() {
+            let mut section_properties = HashMap::new();
+            section_properties.insert("role_arn".to_owned(), "role_arn_1".to_owned());
+            let result = get_assume_settings(&section_properties);
+
+            assert!(result.is_none());
+        }
+    }
+
     fn assert_section_name(result: Option<(&Option<String>, &Properties)>, expected: &str) {
         let (section_name, _) = result.unwrap();
         assert_eq!(section_name.clone().unwrap(), expected.to_owned());
