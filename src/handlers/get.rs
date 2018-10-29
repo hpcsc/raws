@@ -203,6 +203,35 @@ mod tests {
         }
     }
 
+    mod find_section_with_same_access_key {
+        use handlers::get::find_section_with_same_access_key;
+        use ini::Ini;
+
+        fn get_test_ini() -> Ini {
+            let mut conf = Ini::new();
+            conf.with_section(Some("fist_section".to_owned()))
+                .set("aws_access_key_id", "access_key_1");
+            conf.with_section(Some("second_section".to_owned()))
+                .set("aws_access_key_id", "access_key_2");
+            conf
+        }
+
+        #[test]
+        fn return_none_if_not_found() {
+            let conf = get_test_ini();
+            let result = find_section_with_same_access_key(&conf)(&"access_key_3".to_owned());
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn return_some_if_found() {
+            let conf = get_test_ini();
+            let result = find_section_with_same_access_key(&conf)(&"access_key_2".to_owned());
+            assert!(result.is_some());
+            super::assert_section_name(result, "second_section");
+        }
+    }
+
     fn assert_section_name(result: Option<(&Option<String>, &Properties)>, expected: &str) {
         let (section_name, _) = result.unwrap();
         assert_eq!(section_name.clone().unwrap(), expected.to_owned());
