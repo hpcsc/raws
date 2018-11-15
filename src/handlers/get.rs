@@ -87,7 +87,7 @@ fn get_section_name((section_name, _): (&Option<String>, &Properties)) -> Option
     }
 }
 
-pub fn handle(config: GetConfig, output: impl Fn(String) -> ()) -> Result<(), String> {
+pub fn handle(config: GetConfig, mut output: impl FnMut(String) -> ()) -> Result<(), String> {
     let config_file = load_ini(&config.config_path)?;
     let credentials_file = load_ini(&config.credentials_path)?;
 
