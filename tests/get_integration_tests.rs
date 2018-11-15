@@ -1,14 +1,9 @@
 extern crate raws;
+extern crate test_utilities;
 
-use std::env::current_dir;
 use raws::handlers::get;
 use raws::config;
-
-fn get_test_data_path(file_name: String) -> String {
-    let unwrapped = current_dir().unwrap();
-    let current_dir = unwrapped.display();
-    format!("{}/{}/{}", current_dir, "tests/test_data", file_name)
-}
+use test_utilities::{ get_test_data_path };
 
 fn execute_handle(config: config::GetConfig) -> (Result<(), String>, String) {
     let mut output_message = String::from("");

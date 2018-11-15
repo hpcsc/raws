@@ -7,3 +7,6 @@ authors = ["David Nguyen <hpcsc@users.noreply.github.com>"]
 clap = {version = "2.32", features = ["yaml"]}
 rust-ini = "0.13"
 shellexpand = "1.0"
+
+[dev-dependencies]
+test_utilities = { path = "test_utilities" }
