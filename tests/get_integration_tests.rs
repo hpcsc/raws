@@ -10,13 +10,7 @@ fn get_test_data_path(file_name: String) -> String {
     format!("{}/{}/{}", current_dir, "tests/test_data", file_name)
 }
 
-#[test]
-fn return_assumed_profile_if_matching_profile_found_in_both_credentials_and_profile() {
-    let config = config::GetConfig {
-        config_path: get_test_data_path("get_matching_found_in_both_config".to_owned()),
-        credentials_path: get_test_data_path("get_matching_found_in_both_credentials".to_owned())
-    };
-
+fn execute_handle(config: config::GetConfig) -> (Result<(), String>, String) {
     let mut output_message = String::from("");
 
     let result = {
@@ -27,6 +21,44 @@ fn return_assumed_profile_if_matching_profile_found_in_both_credentials_and_prof
         get::handle(config, output)
     };
 
+    (result, output_message)
+}
+
+#[test]
+fn return_assumed_profile_if_matching_profile_found_in_both_credentials_and_profile() {
+    let config = config::GetConfig {
+        config_path: get_test_data_path("get_matching_found_in_both.config".to_owned()),
+        credentials_path: get_test_data_path("get_matching_found_in_both.credentials".to_owned())
+    };
+
+    let (result, output_message) = execute_handle(config);
+
     assert!(result.is_ok());
     assert_eq!("profile second_assumed_profile", output_message);
+}
+
+#[test]
+fn return_profile_from_credentials_if_profile_found_in_credentials_only() {
+    let config = config::GetConfig {
+        config_path: get_test_data_path("get_matching_found_in_credentials_only.config".to_owned()),
+        credentials_path: get_test_data_path("get_matching_found_in_credentials_only.credentials".to_owned())
+    };
+
+    let (result, output_message) = execute_handle(config);
+
+    assert!(result.is_ok());
+    assert_eq!("second_profile", output_message);
+}
+
+#[test]
+fn return_none_if_not_found_in_both_config_and_credentials() {
+    let config = config::GetConfig {
+        config_path: get_test_data_path("get_not_found_in_both.config".to_owned()),
+        credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_owned())
+    };
+
+    let (result, output_message) = execute_handle(config);
+
+    assert_eq!(result.err(), Some(String::from("no default profile set")));
+    assert_eq!(output_message, String::from(""));
 }
