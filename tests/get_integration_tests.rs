@@ -8,13 +8,9 @@ use test_utilities::{ get_test_data_path };
 fn execute_handle(config: config::GetConfig) -> (Result<(), String>, String) {
     let mut output_message = String::from("");
 
-    let result = {
-        let output = |message: String| {
-            output_message = message;
-        };
-
-        get::handle(config, output)
-    };
+    let result = get::handle(config, |message: String| {
+        output_message = message;
+    });
 
     (result, output_message)
 }
