@@ -46,7 +46,7 @@ fn return_profile_from_credentials_if_profile_found_in_credentials_only() {
 }
 
 #[test]
-fn return_none_if_not_found_in_both_config_and_credentials() {
+fn return_err_if_not_found_in_both_config_and_credentials() {
     let config = config::GetConfig {
         config_path: get_test_data_path("get_not_found_in_both.config".to_owned()),
         credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_owned())
@@ -55,5 +55,33 @@ fn return_none_if_not_found_in_both_config_and_credentials() {
     let (result, output_message) = execute_handle(config);
 
     assert_eq!(result.err(), Some(String::from("no default profile set")));
+    assert_eq!(output_message, String::from(""));
+}
+
+#[test]
+fn return_err_if_config_file_not_found() {
+    let config = config::GetConfig {
+        config_path: get_test_data_path("not_existing.config".to_owned()),
+        credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_owned())
+    };
+
+    let (result, output_message) = execute_handle(config);
+    let error_message = result.unwrap_err();
+    assert!(error_message.contains("failed to load file"));
+    assert!(error_message.contains("not_existing.config"));
+    assert_eq!(output_message, String::from(""));
+}
+
+#[test]
+fn return_err_if_credentials_file_not_found() {
+    let config = config::GetConfig {
+        config_path: get_test_data_path("get_not_found_in_both.config".to_owned()),
+        credentials_path: get_test_data_path("not_existing.credentials".to_owned())
+    };
+
+    let (result, output_message) = execute_handle(config);
+    let error_message = result.unwrap_err();
+    assert!(error_message.contains("failed to load file"));
+    assert!(error_message.contains("not_existing.credentials"));
     assert_eq!(output_message, String::from(""));
 }
