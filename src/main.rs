@@ -4,7 +4,7 @@ extern crate raws;
 use clap::{ App };
 
 use raws::config::{ Config };
-use raws::handlers::{ get, set };
+use raws::handlers::{ get, set, fzf };
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -22,7 +22,7 @@ fn main() {
 
     let result = match config {
         Config::Get(config) => get::handle(config, display_result),
-        Config::Set(config) => set::handle(config),
+        Config::Set(config) => set::handle(config, display_result, fzf::choose_profile),
     };
 
     result.unwrap_or_else(|error_message| {
