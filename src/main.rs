@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate clap;
 extern crate raws;
+extern crate ini;
+
 use clap::{ App };
+use ini::Ini;
 
 use raws::config::{ Config };
 use raws::handlers::{ get, set, fzf };
@@ -10,6 +13,10 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn display_result(message: String) -> () {
     println!("{}", message)
+}
+
+fn write_to_file(file: Ini, output_path: &String) -> Result<(), String> {
+    Ok(())
 }
 
 fn main() {
@@ -22,7 +29,7 @@ fn main() {
 
     let result = match config {
         Config::Get(config) => get::handle(config, display_result),
-        Config::Set(config) => set::handle(config, display_result, fzf::choose_profile),
+        Config::Set(config) => set::handle(config, display_result, fzf::choose_profile, write_to_file),
     };
 
     result.unwrap_or_else(|error_message| {
