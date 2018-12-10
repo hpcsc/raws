@@ -47,13 +47,49 @@ fn set_default_assume_settings(file: &Ini, (role_arn, source_profile): (&String,
     Ok(output)
 }
 
-fn set_assume_profile(config_file: &Ini, selected_profile: &String) -> Result<Ini, String> {
+fn set_assume_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &String) -> Result<(Ini, Ini), String> {
     let find_result = find_profile_with_name(config_file, selected_profile)
     .and_then(compose(get_value_of_tuple, get_assume_settings));
 
     match find_result {
-        Some(settings) => set_default_assume_settings(config_file, settings),
+        Some(settings) => {
+            let updated_config_file = set_default_assume_settings(config_file, settings)?;
+            Ok((updated_config_file, credentials_file.clone()))
+        },
         None => Err("".to_owned())
+    }
+}
+
+fn set_default_settings(file: &Ini, (aws_access_key_id, aws_secret_access_key): (&String, &String)) -> Result<Ini, String> {
+    let mut output = file.clone();
+    output.set_to(Some("default"), "aws_access_key_id".to_owned(), aws_access_key_id.to_string());
+    output.set_to(Some("default"), "aws_secret_access_key".to_owned(), aws_secret_access_key.to_string());
+    Ok(output)
+}
+
+fn get_profile_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
+    let aws_access_key_id = properties.get("aws_access_key_id");
+    let aws_secret_access_key= properties.get("aws_secret_access_key");
+    if let (Some(key_id), Some(access_key)) = (aws_access_key_id, aws_secret_access_key) {
+        return Some((key_id, access_key))
+    }
+
+    None
+}
+
+fn set_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &String) -> Result<(Ini, Ini), String> {
+    let find_result = find_profile_with_name(credentials_file, selected_profile)
+        .and_then(compose(get_value_of_tuple, get_profile_settings));
+
+    match find_result {
+        Some(settings) => {
+            set_default_assume_settings(config_file, (&"".to_owned(), &"".to_owned()))
+                .and_then(|updated_config_file| {
+                    let updated_credentials_file = set_default_settings(credentials_file, settings)?;
+                    Ok((updated_config_file, updated_credentials_file))
+                })
+        }
+        None => Err("profile not found in both config and credentials file".to_owned())
     }
 }
 
@@ -69,10 +105,14 @@ pub fn handle(config: SetConfig,
 
     let selected_profile = choose_profile(profiles);
 
-    let set_result = set_assume_profile(&config_file, &selected_profile);
+    let set_result = set_assume_profile(&config_file, &credentials_file, &selected_profile)
+                        .or_else(|_| {
+                            set_profile(&config_file, &credentials_file, &selected_profile)
+                        });
 
-    set_result.and_then(|output_file| {
-        write_to_file(output_file, &config.config_path)?;
+    set_result.and_then(|(updated_config_file, updated_credentials_file)| {
+        write_to_file(updated_config_file, &config.config_path)?;
+        write_to_file(updated_credentials_file, &config.credentials_path)?;
         Ok(output("profile set successfully".to_owned()))
     })
 }

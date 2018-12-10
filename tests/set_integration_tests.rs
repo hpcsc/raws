@@ -7,10 +7,10 @@ use raws::handlers::set;
 use raws::config;
 use test_utilities::{ get_test_data_path };
 
-fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<(), String>, String, Vec<String>, Ini) {
+fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<(), String>, String, Vec<String>, Vec<Ini>) {
     let mut output_message = String::from("");
     let mut profiles_to_choose: Vec<String> = Vec::new();
-    let mut updated_file: Ini = Ini::new();
+    let mut updated_files: Vec<Ini> = vec!();
 
     let result = {
         let output = |message: String| {
@@ -23,14 +23,14 @@ fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<
         };
 
         let write_to_file = |file: Ini, output_path: &String| {
-            updated_file = file;
+            updated_files.push(file);
             Ok(())
         };
 
         set::handle(config, output, choose_profile, write_to_file)
     };
 
-    (result, output_message, profiles_to_choose, updated_file)
+    (result, output_message, profiles_to_choose, updated_files)
 }
 
 #[test]
@@ -89,8 +89,45 @@ fn set_config_file_default_section_if_selected_profile_can_be_found_in_config() 
         pattern: "".to_owned()
     };
 
-    let (_, _, _, updated_file) = execute_handle(config, "profile first_assumed_profile".to_owned());
+    let (_, _, _, updated_files) = execute_handle(config, "profile first_assumed_profile".to_owned());
 
-    assert_eq!(updated_file.get_from(Some("default"), "role_arn"), Some("1"));
-    assert_eq!(updated_file.get_from(Some("default"), "source_profile"), Some("1"));
+    let updated_config_file = &updated_files[0];
+    assert_eq!(updated_config_file.get_from(Some("default"), "role_arn"), Some("1"));
+    assert_eq!(updated_config_file.get_from(Some("default"), "source_profile"), Some("1"));
+}
+
+#[test]
+fn set_credentials_file_default_section_if_selected_profile_can_only_be_found_in_credentials() {
+    let config = config::SetConfig {
+        config_path: get_test_data_path("set.config".to_owned()),
+        credentials_path: get_test_data_path("set.credentials".to_owned()),
+        pattern: "".to_owned()
+    };
+
+    let (_, _, _, updated_files) = execute_handle(config, "first_profile".to_owned());
+
+    assert_eq!(2, updated_files.len());
+
+    // assert that config file default section is reset
+    let updated_config_file = &updated_files[0];
+    assert_eq!(updated_config_file.get_from(Some("default"), "role_arn"), Some(""));
+    assert_eq!(updated_config_file.get_from(Some("default"), "source_profile"), Some(""));
+
+    let updated_credentials_file = &updated_files[1];
+    assert_eq!(updated_credentials_file.get_from(Some("default"), "aws_access_key_id"), Some("1"));
+    assert_eq!(updated_credentials_file.get_from(Some("default"), "aws_secret_access_key"), Some("1"));
+}
+
+#[test]
+fn return_error_result_if_profile_is_not_in_both_config_and_credentials() {
+    let config = config::SetConfig {
+        config_path: get_test_data_path("set.config".to_owned()),
+        credentials_path: get_test_data_path("set.credentials".to_owned()),
+        pattern: "".to_owned()
+    };
+
+    let (result, _, _, updated_files) = execute_handle(config, "third_profile".to_owned());
+
+    assert_eq!(0, updated_files.len());
+    assert!(result.unwrap_err().contains("profile not found"));
 }
