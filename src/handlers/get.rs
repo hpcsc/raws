@@ -1,3 +1,5 @@
+use handlers::common::get_value_of_tuple;
+use handlers::common::get_assume_settings;
 use handlers::common::{ load_ini, compose };
 use ini::ini::Properties;
 use ini::Ini;
@@ -23,15 +25,6 @@ fn find_section_with_same_access_key<'a>(credentials_file: &'a Ini) -> impl Fn(&
     }
 }
 
-fn get_assume_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
-    let role_arn = properties.get("role_arn");
-    let source_profile = properties.get("source_profile");
-    if let (Some(arn), Some(profile)) = (role_arn, source_profile) {
-        return Some((arn, profile))
-    }
-
-    None
-}
 
 fn section_has_same_assume_settings(default_assume_settings: (&String, &String), properties: &Properties) -> bool {
     match get_assume_settings(properties) {
@@ -47,10 +40,6 @@ fn find_section_with_same_assume_settings<'a>(config_file: &'a Ini) -> impl Fn((
             section_has_same_assume_settings(default_assume_settings, &properties)
         })
     }
-}
-
-fn get_value_of_tuple<'a>((_, properties): (&Option<String>, &'a Properties)) -> &'a Properties {
-    properties
 }
 
 fn section_is_not_default(section: &Option<String>) -> bool {

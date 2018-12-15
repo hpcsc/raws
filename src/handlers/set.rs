@@ -1,6 +1,7 @@
+use handlers::common::get_value_of_tuple;
+use handlers::common::get_assume_settings;
 use handlers::common::compose;
 use handlers::common::load_ini;
-use std::io::Error;
 use ini::ini::Properties;
 use ini::Ini;
 use config::{ SetConfig };
@@ -24,20 +25,6 @@ fn find_profile_with_name<'a>(file: &'a Ini, selected_profile: &String) -> Optio
             None => false
         }
     )
-}
-
-fn get_value_of_tuple<'a>((_, properties): (&Option<String>, &'a Properties)) -> &'a Properties {
-    properties
-}
-
-fn get_assume_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
-    let role_arn = properties.get("role_arn");
-    let source_profile = properties.get("source_profile");
-    if let (Some(arn), Some(profile)) = (role_arn, source_profile) {
-        return Some((arn, profile))
-    }
-
-    None
 }
 
 fn set_default_assume_settings(file: &Ini, (role_arn, source_profile): (&String, &String)) -> Result<Ini, String> {

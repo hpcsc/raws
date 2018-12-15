@@ -1,6 +1,21 @@
+use ini::ini::Properties;
 use ini::Ini;
 use ini::ini::Error::{ Io, Parse };
 use shellexpand::tilde;
+
+pub fn get_assume_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
+    let role_arn = properties.get("role_arn");
+    let source_profile = properties.get("source_profile");
+    if let (Some(arn), Some(profile)) = (role_arn, source_profile) {
+        return Some((arn, profile))
+    }
+
+    None
+}
+
+pub fn get_value_of_tuple<'a>((_, properties): (&Option<String>, &'a Properties)) -> &'a Properties {
+    properties
+}
 
 pub fn load_ini(path: &String) -> Result<Ini, String> {
     let expanded_path = tilde(path).to_string();
