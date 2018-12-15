@@ -1,3 +1,4 @@
+use handlers::common::find_profile_with_name;
 use handlers::common::get_value_of_tuple;
 use handlers::common::get_assume_settings;
 use handlers::common::{ load_ini, compose };
@@ -49,22 +50,14 @@ fn section_is_not_default(section: &Option<String>) -> bool {
     }
 }
 
-fn find_default_section<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Properties)> {
-    file.iter().find(|(section, _)|
-        match section {
-            Some(n) => n.to_lowercase() == "default",
-            None => false,
-        })
-}
-
 fn find_current_assume_profile<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Properties)> {
-    find_default_section(&file)
+    find_profile_with_name(&file, &String::from("default"))
         .and_then(compose(get_value_of_tuple, get_assume_settings))
         .and_then(find_section_with_same_assume_settings(&file))
 }
 
 fn find_current_profile<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Properties)> {
-    find_default_section(&file)
+    find_profile_with_name(&file, &String::from("default"))
         .and_then(compose(get_value_of_tuple, get_access_key_id))
         .and_then(find_section_with_same_access_key(&file))
 }
@@ -93,37 +86,6 @@ pub fn handle(config: GetConfig, mut output: impl FnMut(String) -> ()) -> Result
 #[cfg(test)]
 mod tests {
     use ini::ini::Properties;
-
-    mod find_default_section {
-        use handlers::get;
-        use ini::Ini;
-
-        #[test]
-        fn return_none_if_no_default_section() {
-            let mut conf = Ini::new();
-            conf.with_section(Some("first_section".to_owned()))
-                .set("some_key", "some_value");
-            conf.with_section(Some("second_section".to_owned()))
-                .set("some_key", "some_other_value");
-
-            let result = get::find_default_section(&conf);
-            assert!(result.is_none());
-        }
-
-        #[test]
-        fn return_some_if_default_section_found() {
-            let default_section_name = "dEfAult";
-            let mut conf = Ini::new();
-            conf.with_section(Some("fist_section".to_owned()))
-                .set("some_key", "some_value");
-            conf.with_section(Some(default_section_name.to_owned()))
-                .set("some_key", "some_other_value");
-
-            let result = get::find_default_section(&conf);
-            assert!(result.is_some());
-            super::assert_section_name(result, default_section_name);
-        }
-    }
 
     mod find_section_with_same_assume_settings {
         use handlers::get;

@@ -1,3 +1,4 @@
+use handlers::common::find_profile_with_name;
 use handlers::common::get_value_of_tuple;
 use handlers::common::get_assume_settings;
 use handlers::common::compose;
@@ -16,15 +17,6 @@ fn get_all_profile_names_except_default(file: &Ini) -> Vec<String> {
         .collect();
     profiles.sort();
     profiles
-}
-
-fn find_profile_with_name<'a>(file: &'a Ini, selected_profile: &String) -> Option<(&'a Option<String>, &'a Properties)> {
-    file.iter().find(|(section, _)|
-        match section {
-            Some(section_name) => section_name == selected_profile,
-            None => false
-        }
-    )
 }
 
 fn set_default_assume_settings(file: &Ini, (role_arn, source_profile): (&String, &String)) -> Result<Ini, String> {
