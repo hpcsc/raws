@@ -1,36 +1,36 @@
+use std::process::Child;
 use std::process::{Command, Stdio};
 use std::io::{Write};
 
-fn to_string_without_whitespace(input: Vec<u8>) -> String {
-    String::from(String::from_utf8(input).unwrap().trim_end())
+fn to_string_without_whitespace(input: Vec<u8>) -> Result<String, String> {
+    Ok(String::from(String::from_utf8(input).unwrap().trim_end()))
 }
 
-pub fn choose_profile(profiles: Vec<String>) -> String {
-    let mut fzf_command = Command::new("fzf")
+fn spawn_fzf_command() -> Result<Child, String> {
+    Command::new("fzf")
             .args(&[
-                "--height",
-                "30%",
+                "--height", "30%",
                 "--reverse",
                 "-1",
                 "-0",
-                "--header",
-                "'Select AWS profile'"
+                "--header", "'Select AWS profile'"
             ])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
-            .unwrap();
+            .or(Err(String::from("failed to invoke fzf command")))
+}
 
-    fzf_command.stdin
-        .as_mut()
-        .unwrap()
-        .write_all(profiles.join("\n").as_bytes());
+fn write_to_fzf_stdin(fzf_command: &mut Child, profiles: Vec<String>) -> Result<(), String> {
+    let fzf_stdin = fzf_command.stdin.as_mut().ok_or(String::from("failed to access fzf stdin"))?;
+    fzf_stdin.write_all(profiles.join("\n").as_bytes()).or(Err(String::from("failed to pass input to fzf command")))
+}
 
-    let output = fzf_command.wait_with_output().unwrap();
-    if output.status.success() {
-        to_string_without_whitespace(output.stdout)
-    }
-    else {
-        to_string_without_whitespace(output.stderr)
-    }
+pub fn choose_profile(profiles: Vec<String>) -> Result<String, String> {
+    let mut fzf_command = spawn_fzf_command()?;
+    write_to_fzf_stdin(&mut fzf_command, profiles)?;
+
+    let output = fzf_command.wait_with_output().or(Err(String::from("error while executing fzf")))?;
+    let output_value = if output.status.success()  { output.stdout } else { output.stderr };
+    to_string_without_whitespace(output_value)
 }

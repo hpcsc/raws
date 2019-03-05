@@ -19,7 +19,7 @@ fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<
 
         let choose_profile = |profiles: Vec<String>| {
             profiles_to_choose = profiles;
-            chosen_profile.clone()
+            Ok(chosen_profile.clone())
         };
 
         let write_to_file = |file: Ini, output_path: &String| {

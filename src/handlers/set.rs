@@ -74,7 +74,7 @@ fn set_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &Str
 
 pub fn handle(config: SetConfig,
               mut output: impl FnMut(String) -> (),
-              mut choose_profile: impl FnMut(Vec<String>) -> String,
+              mut choose_profile: impl FnMut(Vec<String>) -> Result<String, String>,
               mut write_to_file: impl FnMut(Ini, &String) -> Result<(), String>) -> Result<(), String> {
     let config_file = load_ini(&config.config_path)?;
     let credentials_file = load_ini(&config.credentials_path)?;
@@ -82,7 +82,7 @@ pub fn handle(config: SetConfig,
     let mut profiles = get_all_profile_names_except_default(&credentials_file);
     profiles.extend(get_all_profile_names_except_default(&config_file));
 
-    let selected_profile = choose_profile(profiles);
+    let selected_profile = choose_profile(profiles)?;
 
     let set_result = set_assume_profile(&config_file, &credentials_file, &selected_profile)
                         .or_else(
