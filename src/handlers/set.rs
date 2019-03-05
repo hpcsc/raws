@@ -85,9 +85,8 @@ pub fn handle(config: SetConfig,
     let selected_profile = choose_profile(profiles);
 
     let set_result = set_assume_profile(&config_file, &credentials_file, &selected_profile)
-                        .or_else(|_| {
-                            set_profile(&config_file, &credentials_file, &selected_profile)
-                        });
+                        .or_else(
+                     |_| set_profile(&config_file, &credentials_file, &selected_profile));
 
     set_result.and_then(|(updated_config_file, updated_credentials_file)| {
         write_to_file(updated_config_file, &config.config_path)?;

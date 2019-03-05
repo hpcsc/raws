@@ -3,11 +3,11 @@ extern crate clap;
 extern crate raws;
 extern crate ini;
 
-use clap::{ App };
+use clap::App;
 use ini::Ini;
 
-use raws::config::{ Config };
-use raws::handlers::{ get, set, fzf };
+use raws::config::Config;
+use raws::handlers::{get, set, fzf};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -22,8 +22,8 @@ fn write_to_file(file: Ini, output_path: &String) -> Result<(), String> {
 fn main() {
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from_yaml(yaml)
-                    .version(VERSION)
-                    .get_matches();
+        .version(VERSION)
+        .get_matches();
 
     let config = Config::new(&matches).unwrap();
 
