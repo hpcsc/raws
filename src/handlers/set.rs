@@ -6,6 +6,7 @@ use handlers::common::load_ini;
 use ini::ini::Properties;
 use ini::Ini;
 use config::{ SetConfig };
+use std::error::Error;
 
 fn get_all_profile_names_except_default(file: &Ini) -> Vec<String> {
     let mut profiles: Vec<String> = file.iter()
@@ -19,11 +20,11 @@ fn get_all_profile_names_except_default(file: &Ini) -> Vec<String> {
     profiles
 }
 
-fn set_default_assume_settings(file: &Ini, (role_arn, source_profile): (&String, &String)) -> Result<Ini, String> {
+fn set_default_assume_settings(file: &Ini, (role_arn, source_profile): (&String, &String)) -> Ini {
     let mut output = file.clone();
     output.set_to(Some("default"), "role_arn".to_owned(), role_arn.to_string());
     output.set_to(Some("default"), "source_profile".to_owned(), source_profile.to_string());
-    Ok(output)
+    output
 }
 
 fn set_assume_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &String) -> Result<(Ini, Ini), String> {
@@ -32,21 +33,21 @@ fn set_assume_profile(config_file: &Ini, credentials_file: &Ini, selected_profil
 
     match find_result {
         Some(settings) => {
-            let updated_config_file = set_default_assume_settings(config_file, settings)?;
+            let updated_config_file = set_default_assume_settings(config_file, settings);
             Ok((updated_config_file, credentials_file.clone()))
         },
         None => Err("".to_owned())
     }
 }
 
-fn set_default_settings(file: &Ini, (aws_access_key_id, aws_secret_access_key): (&String, &String)) -> Result<Ini, String> {
+fn set_default_settings(file: &Ini, (aws_access_key_id, aws_secret_access_key): (&String, &String)) -> Ini {
     let mut output = file.clone();
     output.set_to(Some("default"), "aws_access_key_id".to_owned(), aws_access_key_id.to_string());
     output.set_to(Some("default"), "aws_secret_access_key".to_owned(), aws_secret_access_key.to_string());
-    Ok(output)
+    output
 }
 
-fn get_profile_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
+fn get_profile_settings(properties: &Properties) -> Option<(&String, &String)> {
     let aws_access_key_id = properties.get("aws_access_key_id");
     let aws_secret_access_key= properties.get("aws_secret_access_key");
     if let (Some(key_id), Some(access_key)) = (aws_access_key_id, aws_secret_access_key) {
@@ -62,11 +63,9 @@ fn set_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &Str
 
     match find_result {
         Some(settings) => {
-            set_default_assume_settings(config_file, (&"".to_owned(), &"".to_owned()))
-                .and_then(|updated_config_file| {
-                    let updated_credentials_file = set_default_settings(credentials_file, settings)?;
-                    Ok((updated_config_file, updated_credentials_file))
-                })
+            let updated_config_file = set_default_assume_settings(config_file, (&"".to_owned(), &"".to_owned()));
+            let updated_credentials_file = set_default_settings(credentials_file, settings);
+            Ok((updated_config_file, updated_credentials_file))
         }
         None => Err("profile not found in both config and credentials file".to_owned())
     }
@@ -74,8 +73,9 @@ fn set_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &Str
 
 pub fn handle(config: SetConfig,
               mut output: impl FnMut(String) -> (),
-              mut choose_profile: impl FnMut(Vec<String>) -> Result<String, String>,
-              mut write_to_file: impl FnMut(Ini, &String) -> Result<(), String>) -> Result<(), String> {
+              mut choose_profile: impl FnMut(Vec<String>) -> Result<String, Box<Error>>,
+              mut write_to_file: impl FnMut(Ini, &String) -> Result<(), Box<Error>>)
+              -> Result<(), Box<Error>> {
     let config_file = load_ini(&config.config_path)?;
     let credentials_file = load_ini(&config.credentials_path)?;
 
@@ -86,7 +86,8 @@ pub fn handle(config: SetConfig,
 
     let set_result = set_assume_profile(&config_file, &credentials_file, &selected_profile)
                         .or_else(
-                     |_| set_profile(&config_file, &credentials_file, &selected_profile));
+                     |_| set_profile(&config_file, &credentials_file, &selected_profile))
+                        .map_err(|e| e.into());
 
     set_result.and_then(|(updated_config_file, updated_credentials_file)| {
         write_to_file(updated_config_file, &config.config_path)?;

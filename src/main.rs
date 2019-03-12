@@ -8,6 +8,7 @@ use ini::Ini;
 
 use raws::config::Config;
 use raws::handlers::{get, set, fzf};
+use std::error::Error;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -15,7 +16,7 @@ fn display_result(message: String) -> () {
     println!("{}", message)
 }
 
-fn write_to_file(file: Ini, output_path: &String) -> Result<(), String> {
+fn write_to_file(file: Ini, output_path: &String) -> Result<(), Box<Error>> {
     Ok(())
 }
 
@@ -32,7 +33,7 @@ fn main() {
         Config::Set(config) => set::handle(config, display_result, fzf::choose_profile, write_to_file),
     };
 
-    result.unwrap_or_else(|error_message| {
-        println!("== Error: {}", error_message);
+    result.unwrap_or_else(|error| {
+        println!("== Error: {}", error);
     })
 }

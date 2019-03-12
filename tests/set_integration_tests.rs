@@ -6,8 +6,9 @@ use ini::Ini;
 use raws::handlers::set;
 use raws::config;
 use test_utilities::{ get_test_data_path };
+use std::error::Error;
 
-fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<(), String>, String, Vec<String>, Vec<Ini>) {
+fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<(), Box<Error>>, String, Vec<String>, Vec<Ini>) {
     let mut output_message = String::from("");
     let mut profiles_to_choose: Vec<String> = Vec::new();
     let mut updated_files: Vec<Ini> = vec!();
@@ -22,7 +23,7 @@ fn execute_handle(config: config::SetConfig, chosen_profile: String) -> (Result<
             Ok(chosen_profile.clone())
         };
 
-        let write_to_file = |file: Ini, output_path: &String| {
+        let write_to_file = |file: Ini, _: &String| {
             updated_files.push(file);
             Ok(())
         };
@@ -42,7 +43,7 @@ fn return_err_if_config_file_not_found() {
     };
 
     let (result, output_message, _, _) = execute_handle(config, "".to_owned());
-    let error_message = result.unwrap_err();
+    let error_message = format!("{}", result.unwrap_err());
     assert!(error_message.contains("failed to load file"));
     assert!(error_message.contains("not_existing.config"));
     assert_eq!(output_message, String::from(""));
@@ -57,7 +58,7 @@ fn return_err_if_credentials_file_not_found() {
     };
 
     let (result, output_message, _, _) = execute_handle(config, "".to_owned());
-    let error_message = result.unwrap_err();
+    let error_message = format!("{}", result.unwrap_err());
     assert!(error_message.contains("failed to load file"));
     assert!(error_message.contains("not_existing.credentials"));
     assert_eq!(output_message, String::from(""));
@@ -129,5 +130,6 @@ fn return_error_result_if_profile_is_not_in_both_config_and_credentials() {
     let (result, _, _, updated_files) = execute_handle(config, "third_profile".to_owned());
 
     assert_eq!(0, updated_files.len());
-    assert!(result.unwrap_err().contains("profile not found"));
+    let error_message = format!("{}", result.unwrap_err());
+    assert!(error_message.contains("profile not found"));
 }
