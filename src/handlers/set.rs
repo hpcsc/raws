@@ -83,6 +83,9 @@ pub fn handle(config: SetConfig,
     profiles.extend(get_all_profile_names_except_default(&config_file));
 
     let selected_profile = choose_profile(profiles)?;
+    if selected_profile.is_empty() {
+       return Ok(()) ;
+    }
 
     let set_result = set_assume_profile(&config_file, &credentials_file, &selected_profile)
                         .or_else(

@@ -133,3 +133,18 @@ fn return_error_result_if_profile_is_not_in_both_config_and_credentials() {
     let error_message = format!("{}", result.unwrap_err());
     assert!(error_message.contains("profile not found"));
 }
+
+#[test]
+fn return_early_if_select_profiles_action_is_cancelled() {
+    let config = config::SetConfig {
+        config_path: get_test_data_path("set.config".to_string()),
+        credentials_path: get_test_data_path("set.credentials".to_string()),
+        pattern: "".to_string()
+    };
+
+    // when user presses Ctrl-C during fzf selection, chosen_profile is empty string
+    let (result, _, _, updated_files) = execute_handle(config, "".to_string());
+
+    assert_eq!(0, updated_files.len());
+    assert!(result.is_ok());
+}
