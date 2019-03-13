@@ -8,11 +8,13 @@ use ini::Ini;
 use config::{ SetConfig };
 use std::error::Error;
 
-fn get_all_profile_names_except_default(file: &Ini) -> Vec<String> {
+fn get_all_profile_names_except_default(file: &Ini, required_keys: Vec<String>) -> Vec<String> {
     let mut profiles: Vec<String> = file.iter()
-        .filter_map(|(section, _)|
+        .filter_map(|(section, properties)|
             match section {
-                Some(section_name) if section_name != "default" => Some(section_name.clone()),
+                Some(section_name)
+                    if (|| section_name != "default" && required_keys.iter().all(|key| properties.contains_key(key)))()
+                  => Some(section_name.clone()),
                 _ => None
             })
         .collect();
@@ -78,10 +80,13 @@ pub fn handle(config: SetConfig,
     let config_file = load_ini(&config.config_path)?;
     let credentials_file = load_ini(&config.credentials_path)?;
 
-    let mut profiles = get_all_profile_names_except_default(&credentials_file);
-    profiles.extend(get_all_profile_names_except_default(&config_file));
+    let mut profiles = get_all_profile_names_except_default(&credentials_file,
+                                                        vec!("aws_access_key_id".to_string(), "aws_secret_access_key".to_string()));
+    profiles.extend(get_all_profile_names_except_default(&config_file,
+                                                       vec!("role_arn".to_string(), "source_profile".to_string())));
 
-    let selected_profile = choose_profile(profiles)?;
+
+    let selected_profile  = choose_profile(profiles)?;
     if selected_profile.is_empty() {
        return Ok(String::new()) ;
     }
@@ -94,7 +99,7 @@ pub fn handle(config: SetConfig,
     set_result.and_then(|(updated_config_file, updated_credentials_file)| {
         write_to_file(updated_config_file, &config.config_path)?;
         write_to_file(updated_credentials_file, &config.credentials_path)?;
-        Ok("profile set successfully".to_string())
+        Ok(format!("default aws profile is set to [{}]", &selected_profile))
     })
 }
 
@@ -112,9 +117,23 @@ mod tests {
             conf.with_section(Some("a".to_string())).set("role_arn", "arn_a");
             conf.with_section(Some("c".to_string())).set("role_arn", "arn_c");
 
-            let profiles = set::get_all_profile_names_except_default(&conf);
+            let profiles = set::get_all_profile_names_except_default(&conf, vec!());
 
             assert_eq!(vec!("a", "b", "c"), profiles)
+        }
+
+        #[test]
+        fn return_all_profile_names_with_required_keys_except_default() {
+            let mut conf = Ini::new();
+            conf.with_section(Some("b".to_string())).set("key1", "value1").set("key2", "value2");
+            conf.with_section(Some("default".to_string())).set("key1", "value1").set("key2", "value2");
+            conf.with_section(Some("a".to_string())).set("key1", "value1").set("key3", "value2");
+            conf.with_section(Some("d".to_string())).set("key1", "value1").set("key2", "value2");
+            conf.with_section(Some("c".to_string())).set("key2", "value2");
+
+            let profiles = set::get_all_profile_names_except_default(&conf, vec!("key1".to_string(), "key2".to_string()));
+
+            assert_eq!(vec!("b", "d"), profiles)
         }
     }
 
