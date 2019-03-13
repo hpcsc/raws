@@ -10,16 +10,16 @@ script:
 - cargo build --release --verbose --all
 - cargo test --verbose --all
 after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then mkdir build; mv target/release/raws
-  build/raws-${TRAVIS_OS_NAME}-${TRAVIS_BUILD_NUMBER} ; fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+    mkdir build;
+    mv target/release/raws build/raws-${TRAVIS_OS_NAME}-${TRAVIS_BUILD_NUMBER} ;
+  fi
 deploy:
-  provider: gcs
-  access_key_id: GOOGLA7XHWA7JQJSRMWN3BEZ
-  secret_access_key:
-    secure: Y0XDGHWWQxsAdPJ/yz1sGqNKxz530bJZgzNXfNXAt/CvEheqFgUyPpLNJXEZ9sq3G/Xz10qI/c6QhV7LLCHcyPsdz7h+X9XDg2uUESt2sClQJsMpIz05t6N2yQUUo2H7duv2Ixk28CL7LfOtyIt0/lSVC9014sOgnGViZxB1dFLliojegmj2E+QyvFhXBFjWK1OwFcEgGbn+OIUw1DTUawgHPc5HVUZlqcPyTlGtLJqVP5ah29C4JUriLgphb+l+mZ3KUp9W4Vj2cQ12qgDd+FpikDz/IKEi6MHtWi0IE0r2rsKMlnnDYJ415AQLWSHg6rfnJvGfrb/dE8sQvURucCt362U86fHZ+8ZaAyY+8zCYpc6BQkB1oTw9np39sYVYYtioXjdXSFgF9j640Y3y+LyQoPAm4fcTxJ8i0HeYHe2f1VnBPBCeCEYrzJZT3iNtyFTjSVGGvhv0qOTXK6Ygm14lgccfnkWNPK7XizlRIr5FmwJbFX2KEaSdm8dVAYOM+CUOQWtzQYOammxPpcIuNvkVHxtIzeoaYbLlkzzjz+b9750VaOnpMlmJlN/lpn5Ncw8FxwzONF8Yr2mb7XxYMAj6hek43GmuOylri8/hAiHNBzs6/2Exy219qFgy1hBkM+HAcySQ3iEXgI2Uvtf1op4LWPkHAa+W5qkN0pHMXxM=
+  provider: bintray
+  file: bintray-descriptor.json
+  user: hpcsc
+  key:
+    secure: 0YyEd30Xn+EYg9wxMJhuyWk9ZDfx1CS/Z9fmAPyhkxzaWnB3jCTb6toV3vIhiBlro6qDeq0CR41DLo3+M8+odrswKHi2H4Aa/v4w82iryYPs/mVIPhimJF3YokMSFcXqV7PD9uTAFp6qO5w0iOjr9W3DeH3DmwsW5w14aXz0GQK5UqEpkwWn0CZJd2CWxQGrTW8hn09s/gAm9UDlM4iYCDLZdzHTzFp8yolNqEF2wsvRWUoBl/OCQlpKN0Nzt2FeIcgwSv9g7vBM6dVJFA3yExtKYGU+KtaqCQ9NIYAlr7iYExg9sTOaI0I+5gNhz761WetXavTyB2dCbpreuPlADJ+cNePuLOe7XxYYbve79DlrBIGV/sVoMZ4gN4TsW5dbV0UQ/TzHP+rtnf1oHNQFqpes//ge4U1Ah993UIB+e/Z8TarQi8fH4Gd86cROyna66CmQgL2xkJN/XRoN3n+rgkljHmzJmnBhJXkJirEtBORazLIk+3v0aiepn+m+DgnaHGTCd5cHGiUHlDkuwzUQzBJGaKvFOcVd3eeQbfCLQKzrWzAHGGBx/ueYlkXgnIEW6+kK/uRVat4RvJYNOqfsZydOy2vyJzUcfx2rF4TmI/IVlzyoKjGC1sIa8cGbLnHbEcA0AJwUmh5PzfstsoXJVjZt1ava5FZbSBaAI5JTIHA=
   skip_cleanup: true
-  bucket: raws-master
-  local-dir: build
-  acl: public-read
   on:
     branch: master

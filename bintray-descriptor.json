@@ -1,0 +1,20 @@
+{
+  "package": {
+    "name": "raws-master",
+    "repo": "raws",
+    "subject": "hpcsc",
+    "vcs_url": "https://github.com/hpcsc/raws",
+    "licenses": ["MIT"],
+    "labels": ["raws", "master", "aws"],
+    "public_download_numbers": false,
+    "public_stats": false
+  },
+  "version": {
+    "name": "RAWS_VERSION",
+    "gpgSign": false
+  },
+  "files": [
+    {"includePattern": "build/(raws.*)", "uploadPattern": "$1"}
+  ],
+  "publish": true
+}
