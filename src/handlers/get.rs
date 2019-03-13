@@ -65,7 +65,7 @@ fn find_current_profile<'a>(file: &'a Ini) -> Option<(&'a Option<String>, &Prope
 
 fn get_section_name((section_name, _): (&Option<String>, &Properties)) -> Option<String> {
     match section_name {
-        Some(name) => Some(name.to_owned()),
+        Some(name) => Some(name.to_string()),
         None => None
     }
 }
@@ -94,10 +94,10 @@ mod tests {
 
         fn get_test_ini() -> Ini {
             let mut conf = Ini::new();
-            conf.with_section(Some("fist_section".to_owned()))
+            conf.with_section(Some("fist_section".to_string()))
                 .set("role_arn", "arn_1")
                 .set("source_profile", "source_profile_1");
-            conf.with_section(Some("second_section".to_owned()))
+            conf.with_section(Some("second_section".to_string()))
                 .set("role_arn", "arn_2")
                 .set("source_profile", "source_profile_2");
             conf
@@ -106,14 +106,14 @@ mod tests {
         #[test]
         fn return_none_if_not_found() {
             let conf = get_test_ini();
-            let result = get::find_section_with_same_assume_settings(&conf)((&"arn_3".to_owned(), &"source_profile_3".to_owned()));
+            let result = get::find_section_with_same_assume_settings(&conf)((&"arn_3".to_string(), &"source_profile_3".to_string()));
             assert!(result.is_none());
         }
 
         #[test]
         fn return_some_if_found() {
             let conf = get_test_ini();
-            let result = get::find_section_with_same_assume_settings(&conf)((&"arn_2".to_owned(), &"source_profile_2".to_owned()));
+            let result = get::find_section_with_same_assume_settings(&conf)((&"arn_2".to_string(), &"source_profile_2".to_string()));
             assert!(result.is_some());
             super::assert_section_name(result, "second_section");
         }
@@ -126,8 +126,8 @@ mod tests {
         #[test]
         fn return_some_if_both_role_arn_and_source_profile_available() {
             let mut section_properties = HashMap::new();
-            section_properties.insert("role_arn".to_owned(), "role_arn_1".to_owned());
-            section_properties.insert("source_profile".to_owned(), "source_profile_1".to_owned());
+            section_properties.insert("role_arn".to_string(), "role_arn_1".to_string());
+            section_properties.insert("source_profile".to_string(), "source_profile_1".to_string());
             let result = get_assume_settings(&section_properties);
 
             assert!(result.is_some());
@@ -139,7 +139,7 @@ mod tests {
         #[test]
         fn return_none_if_role_arn_not_available() {
             let mut section_properties = HashMap::new();
-            section_properties.insert("source_profile".to_owned(), "source_profile_1".to_owned());
+            section_properties.insert("source_profile".to_string(), "source_profile_1".to_string());
             let result = get_assume_settings(&section_properties);
 
             assert!(result.is_none());
@@ -148,7 +148,7 @@ mod tests {
         #[test]
         fn return_none_if_source_profile_not_available() {
             let mut section_properties = HashMap::new();
-            section_properties.insert("role_arn".to_owned(), "role_arn_1".to_owned());
+            section_properties.insert("role_arn".to_string(), "role_arn_1".to_string());
             let result = get_assume_settings(&section_properties);
 
             assert!(result.is_none());
@@ -161,9 +161,9 @@ mod tests {
 
         fn get_test_ini() -> Ini {
             let mut conf = Ini::new();
-            conf.with_section(Some("fist_section".to_owned()))
+            conf.with_section(Some("fist_section".to_string()))
                 .set("aws_access_key_id", "access_key_1");
-            conf.with_section(Some("second_section".to_owned()))
+            conf.with_section(Some("second_section".to_string()))
                 .set("aws_access_key_id", "access_key_2");
             conf
         }
@@ -171,14 +171,14 @@ mod tests {
         #[test]
         fn return_none_if_not_found() {
             let conf = get_test_ini();
-            let result = find_section_with_same_access_key(&conf)(&"access_key_3".to_owned());
+            let result = find_section_with_same_access_key(&conf)(&"access_key_3".to_string());
             assert!(result.is_none());
         }
 
         #[test]
         fn return_some_if_found() {
             let conf = get_test_ini();
-            let result = find_section_with_same_access_key(&conf)(&"access_key_2".to_owned());
+            let result = find_section_with_same_access_key(&conf)(&"access_key_2".to_string());
             assert!(result.is_some());
             super::assert_section_name(result, "second_section");
         }
@@ -186,6 +186,6 @@ mod tests {
 
     fn assert_section_name(result: Option<(&Option<String>, &Properties)>, expected: &str) {
         let (section_name, _) = result.unwrap();
-        assert_eq!(section_name.clone().unwrap(), expected.to_owned());
+        assert_eq!(section_name.clone().unwrap(), expected.to_string());
     }
 }

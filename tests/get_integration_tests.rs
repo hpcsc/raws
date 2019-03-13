@@ -19,8 +19,8 @@ fn execute_handle(config: config::GetConfig) -> (Result<(), Box<Error>>, String)
 #[test]
 fn return_assumed_profile_if_matching_profile_found_in_both_credentials_and_profile() {
     let config = config::GetConfig {
-        config_path: get_test_data_path("get_matching_found_in_both.config".to_owned()),
-        credentials_path: get_test_data_path("get_matching_found_in_both.credentials".to_owned())
+        config_path: get_test_data_path("get_matching_found_in_both.config".to_string()),
+        credentials_path: get_test_data_path("get_matching_found_in_both.credentials".to_string())
     };
 
     let (result, output_message) = execute_handle(config);
@@ -32,8 +32,8 @@ fn return_assumed_profile_if_matching_profile_found_in_both_credentials_and_prof
 #[test]
 fn return_profile_from_credentials_if_profile_found_in_credentials_only() {
     let config = config::GetConfig {
-        config_path: get_test_data_path("get_matching_found_in_credentials_only.config".to_owned()),
-        credentials_path: get_test_data_path("get_matching_found_in_credentials_only.credentials".to_owned())
+        config_path: get_test_data_path("get_matching_found_in_credentials_only.config".to_string()),
+        credentials_path: get_test_data_path("get_matching_found_in_credentials_only.credentials".to_string())
     };
 
     let (result, output_message) = execute_handle(config);
@@ -45,8 +45,8 @@ fn return_profile_from_credentials_if_profile_found_in_credentials_only() {
 #[test]
 fn return_err_if_not_found_in_both_config_and_credentials() {
     let config = config::GetConfig {
-        config_path: get_test_data_path("get_not_found_in_both.config".to_owned()),
-        credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_owned())
+        config_path: get_test_data_path("get_not_found_in_both.config".to_string()),
+        credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_string())
     };
 
     let (result, output_message) = execute_handle(config);
@@ -59,8 +59,8 @@ fn return_err_if_not_found_in_both_config_and_credentials() {
 #[test]
 fn return_err_if_config_file_not_found() {
     let config = config::GetConfig {
-        config_path: get_test_data_path("not_existing.config".to_owned()),
-        credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_owned())
+        config_path: get_test_data_path("not_existing.config".to_string()),
+        credentials_path: get_test_data_path("get_not_found_in_both.credentials".to_string())
     };
 
     let (result, output_message) = execute_handle(config);
@@ -73,8 +73,8 @@ fn return_err_if_config_file_not_found() {
 #[test]
 fn return_err_if_credentials_file_not_found() {
     let config = config::GetConfig {
-        config_path: get_test_data_path("get_not_found_in_both.config".to_owned()),
-        credentials_path: get_test_data_path("not_existing.credentials".to_owned())
+        config_path: get_test_data_path("get_not_found_in_both.config".to_string()),
+        credentials_path: get_test_data_path("not_existing.credentials".to_string())
     };
 
     let (result, output_message) = execute_handle(config);

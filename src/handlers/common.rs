@@ -12,7 +12,7 @@ pub fn find_profile_with_name<'a>(file: &'a Ini, selected_profile: &String) -> O
     )
 }
 
-pub fn get_assume_settings<'a>(properties: &'a Properties) -> Option<(&'a String, &'a String)> {
+pub fn get_assume_settings(properties: &Properties) -> Option<(&String, &String)> {
     let role_arn = properties.get("role_arn");
     let source_profile = properties.get("source_profile");
     if let (Some(arn), Some(profile)) = (role_arn, source_profile) {
@@ -49,9 +49,9 @@ mod tests {
         #[test]
         fn return_none_if_profile_not_found() {
             let mut conf = Ini::new();
-            conf.with_section(Some("first_section".to_owned()))
+            conf.with_section(Some("first_section".to_string()))
                 .set("some_key", "some_value");
-            conf.with_section(Some("second_section".to_owned()))
+            conf.with_section(Some("second_section".to_string()))
                 .set("some_key", "some_other_value");
 
             let result = common::find_profile_with_name(&conf, &String::from("default"));
@@ -62,15 +62,52 @@ mod tests {
         fn return_some_if_profile_found() {
             let default_section_name = "dEfAult";
             let mut conf = Ini::new();
-            conf.with_section(Some("fist_section".to_owned()))
+            conf.with_section(Some("fist_section".to_string()))
                 .set("some_key", "some_value");
-            conf.with_section(Some(default_section_name.to_owned()))
+            conf.with_section(Some(default_section_name.to_string()))
                 .set("some_key", "some_other_value");
 
             let result = common::find_profile_with_name(&conf, &String::from("default"));
             assert!(result.is_some());
             let (section_name, _) = result.unwrap();
-            assert_eq!(section_name.clone().unwrap(), default_section_name.to_owned());
+            assert_eq!(section_name.clone().unwrap(), default_section_name.to_string());
+        }
+    }
+
+    mod get_assume_settings {
+        use ini::ini::Properties;
+        use handlers::common;
+
+        #[test]
+        fn return_none_if_role_arn_not_found() {
+            let mut properties = Properties::new();
+            properties.insert("source_profile".to_string(), "some_profile".to_string());
+
+            let result = common::get_assume_settings(&properties);
+
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn return_none_if_source_profile_not_found() {
+            let mut properties = Properties::new();
+            properties.insert("role_arn".to_string(), "some_arn".to_string());
+
+            let result = common::get_assume_settings(&properties);
+
+            assert!(result.is_none());
+
+        }
+
+        #[test]
+        fn return_some_if_both_role_arn_and_source_profile_available() {
+            let mut properties = Properties::new();
+            properties.insert("role_arn".to_string(), "some_arn".to_string());
+            properties.insert("source_profile".to_string(), "some_profile".to_string());
+
+            let result = common::get_assume_settings(&properties);
+
+            assert_eq!(result, Some((&"some_arn".to_string(), &"some_profile".to_string())));
         }
     }
 }
