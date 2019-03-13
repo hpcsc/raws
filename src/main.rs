@@ -12,10 +12,6 @@ use std::error::Error;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-fn display_result(message: String) -> () {
-    println!("{}", message)
-}
-
 fn write_to_file(file: Ini, output_path: &String) -> Result<(), Box<Error>> {
     Ok(())
 }
@@ -29,11 +25,13 @@ fn main() {
     let config = Config::new(&matches).unwrap();
 
     let result = match config {
-        Config::Get(config) => get::handle(config, display_result),
-        Config::Set(config) => set::handle(config, display_result, fzf::choose_profile, write_to_file),
+        Config::Get(config) => get::handle(config),
+        Config::Set(config) => set::handle(config, fzf::choose_profile, write_to_file),
     };
 
-    result.unwrap_or_else(|error| {
-        println!("== Error: {}", error);
-    })
+    match result {
+        Ok(ref message) if !message.is_empty() => println!("{}", message),
+        Err(error) => println!("== Error: {}", error),
+        _ => ()
+    };
 }

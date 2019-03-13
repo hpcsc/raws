@@ -67,15 +67,14 @@ fn set_profile(config_file: &Ini, credentials_file: &Ini, selected_profile: &Str
             let updated_credentials_file = set_default_settings(credentials_file, settings);
             Ok((updated_config_file, updated_credentials_file))
         }
-        None => Err("profile not found in both config and credentials file".to_string())
+        None => Err(format!("profile [{}] not found in both config and credentials file", selected_profile))
     }
 }
 
 pub fn handle(config: SetConfig,
-              mut output: impl FnMut(String) -> (),
               mut choose_profile: impl FnMut(Vec<String>) -> Result<String, Box<Error>>,
               mut write_to_file: impl FnMut(Ini, &String) -> Result<(), Box<Error>>)
-              -> Result<(), Box<Error>> {
+              -> Result<String, Box<Error>> {
     let config_file = load_ini(&config.config_path)?;
     let credentials_file = load_ini(&config.credentials_path)?;
 
@@ -84,7 +83,7 @@ pub fn handle(config: SetConfig,
 
     let selected_profile = choose_profile(profiles)?;
     if selected_profile.is_empty() {
-       return Ok(()) ;
+       return Ok(String::new()) ;
     }
 
     let set_result = set_assume_profile(&config_file, &credentials_file, &selected_profile)
@@ -95,7 +94,7 @@ pub fn handle(config: SetConfig,
     set_result.and_then(|(updated_config_file, updated_credentials_file)| {
         write_to_file(updated_config_file, &config.config_path)?;
         write_to_file(updated_credentials_file, &config.credentials_path)?;
-        Ok(output("profile set successfully".to_string()))
+        Ok("profile set successfully".to_string())
     })
 }
 
