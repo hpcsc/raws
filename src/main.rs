@@ -3,7 +3,7 @@ extern crate clap;
 extern crate raws;
 extern crate ini;
 
-use clap::App;
+use clap::{App, AppSettings};
 use ini::Ini;
 
 use raws::config::Config;
@@ -16,22 +16,30 @@ fn write_to_file(file: Ini, output_path: &String) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn main() {
-    let yaml = load_yaml!("cli.yaml");
-    let matches = App::from_yaml(yaml)
-        .version(VERSION)
-        .get_matches();
-
-    let config = Config::new(&matches).unwrap();
-
-    let result = match config {
+fn execute_handler(config: Config) -> Result<String, Box<Error>> {
+    match config {
         Config::Get(config) => get::handle(config),
         Config::Set(config) => set::handle(config, fzf::choose_profile, write_to_file),
-    };
+    }
+}
 
+fn print_result(result: Result<String, Box<Error>>) {
     match result {
         Ok(ref message) if !message.is_empty() => println!("{}", message),
         Err(error) => println!("== Error: {}", error),
         _ => ()
     };
+}
+
+fn main() {
+    let yaml = load_yaml!("cli.yaml");
+    let  app = App::from_yaml(yaml)
+        .version(VERSION)
+        .setting(AppSettings::ArgRequiredElseHelp);
+    let matches = app.get_matches();
+    let config = Config::new(&matches).unwrap();
+
+    let result = execute_handler(config);
+
+    print_result(result);
 }
