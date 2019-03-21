@@ -2,6 +2,7 @@
 extern crate clap;
 extern crate raws;
 extern crate ini;
+extern crate shellexpand;
 
 use clap::{App, AppSettings};
 use ini::Ini;
@@ -9,11 +10,12 @@ use ini::Ini;
 use raws::config::Config;
 use raws::handlers::{get, set, fzf};
 use std::error::Error;
+use shellexpand::tilde;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn write_to_file(file: Ini, output_path: &String) -> Result<(), Box<Error>> {
-    Ok(())
+    file.write_to_file(tilde(output_path).to_string()).map_err(|e| e.into())
 }
 
 fn execute_handler(config: Config) -> Result<String, Box<Error>> {
