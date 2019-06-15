@@ -4,7 +4,6 @@ extern crate test_utilities;
 use raws::handlers::get;
 use raws::config;
 use test_utilities::{ get_test_data_path };
-use std::error::Error;
 
 #[test]
 fn return_assumed_profile_if_matching_profile_found_in_both_credentials_and_profile() {
